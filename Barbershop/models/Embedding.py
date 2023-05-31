@@ -98,7 +98,12 @@ class Embedding(nn.Module):
         self.setup_dataloader(image_path=image_path)
         device = self.opts.device
         ibar = tqdm(self.dataloader, desc='Images')
+        output_dir = self.opts.output_dir
         for ref_im_H, ref_im_L, ref_name in ibar:
+            latent_W_path = os.path.join(output_dir, 'W+', f'{ref_name[0]}.npy')
+            if os.path.exists(latent_W_path):
+                continue
+            
             optimizer_W, latent = self.setup_W_optimizer()
             pbar = tqdm(range(self.opts.W_steps), desc='Embedding', leave=False)
             for step in pbar:
@@ -117,12 +122,12 @@ class Embedding(nn.Module):
                 loss.backward()
                 optimizer_W.step()
 
-                if self.opts.verbose:
-                    pbar.set_description('Embedding: Loss: {:.3f}, L2 loss: {:.3f}, Perceptual loss: {:.3f}, P-norm loss: {:.3f}'
-                                         .format(loss, loss_dic['l2'], loss_dic['percep'], loss_dic['p-norm']))
+                # if self.opts.verbose:
+                #     pbar.set_description('Embedding: Loss: {:.3f}, L2 loss: {:.3f}, Perceptual loss: {:.3f}, P-norm loss: {:.3f}'
+                #                          .format(loss, loss_dic['l2'], loss_dic['percep'], loss_dic['p-norm']))
 
-                if self.opts.save_intermediate and step % self.opts.save_interval== 0:
-                    self.save_W_intermediate_results(ref_name, gen_im, latent_in, step)
+                # if self.opts.save_intermediate and step % self.opts.save_interval== 0:
+                #     self.save_W_intermediate_results(ref_name, gen_im, latent_in, step)
 
             self.save_W_results(ref_name, gen_im, latent_in)
 
@@ -134,8 +139,11 @@ class Embedding(nn.Module):
         output_dir = self.opts.output_dir
         device = self.opts.device
         ibar = tqdm(self.dataloader, desc='Images')
+        output_dir = self.opts.output_dir
         for ref_im_H, ref_im_L, ref_name in ibar:
-
+            latent_FS_path = os.path.join(output_dir, 'FS', f'{ref_name[0]}.npz')
+            if os.path.exists(latent_FS_path):
+                continue
             latent_W_path = os.path.join(output_dir, 'W+', f'{ref_name[0]}.npy')
             latent_W = torch.from_numpy(convert_npy_code(np.load(latent_W_path))).to(device)
             F_init, _ = self.net.generator([latent_W], input_is_latent=True, return_latents=False, start_layer=0, end_layer=3)
@@ -160,10 +168,10 @@ class Embedding(nn.Module):
                 loss.backward()
                 optimizer_FS.step()
 
-                if self.opts.verbose:
-                    pbar.set_description(
-                        'Embedding: Loss: {:.3f}, L2 loss: {:.3f}, Perceptual loss: {:.3f}, P-norm loss: {:.3f}, L_F loss: {:.3f}'
-                        .format(loss, loss_dic['l2'], loss_dic['percep'], loss_dic['p-norm'], loss_dic['l_F']))
+                # if self.opts.verbose:
+                #     pbar.set_description(
+                #         'Embedding: Loss: {:.3f}, L2 loss: {:.3f}, Perceptual loss: {:.3f}, P-norm loss: {:.3f}, L_F loss: {:.3f}'
+                #         .format(loss, loss_dic['l2'], loss_dic['percep'], loss_dic['p-norm'], loss_dic['l_F']))
 
             self.save_FS_results(ref_name, gen_im, latent_in, latent_F)
 
