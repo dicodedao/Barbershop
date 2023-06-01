@@ -106,7 +106,7 @@ class Alignment(nn.Module):
         optimizer_align, latent_align = self.setup_align_optimizer()
         latent_end = latent_align[:, 6:, :].clone().detach()
 
-        pbar = tqdm(range(80), desc='Create Target Mask Step1', leave=False)
+        pbar = tqdm(range(10), desc='Create Target Mask Step1', leave=False)
         for step in pbar:
             optimizer_align.zero_grad()
             latent_in = torch.cat([latent_align[:, :6, :], latent_end], dim=1)
@@ -140,7 +140,7 @@ class Alignment(nn.Module):
         optimizer_align, latent_align = self.setup_align_optimizer()
         latent_end = latent_align[:, 6:, :].clone().detach()
 
-        pbar = tqdm(range(80), desc='Create Target Mask Step2', leave=False)
+        pbar = tqdm(range(10), desc='Create Target Mask Step2', leave=False)
         for step in pbar:
             optimizer_align.zero_grad()
             latent_in = torch.cat([latent_align[:, :6, :], latent_end], dim=1)

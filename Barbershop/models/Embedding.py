@@ -122,12 +122,12 @@ class Embedding(nn.Module):
                 loss.backward()
                 optimizer_W.step()
 
-                # if self.opts.verbose:
-                #     pbar.set_description('Embedding: Loss: {:.3f}, L2 loss: {:.3f}, Perceptual loss: {:.3f}, P-norm loss: {:.3f}'
-                #                          .format(loss, loss_dic['l2'], loss_dic['percep'], loss_dic['p-norm']))
+                if self.opts.verbose:
+                    pbar.set_description('Embedding: Loss: {:.3f}, L2 loss: {:.3f}, Perceptual loss: {:.3f}, P-norm loss: {:.3f}'
+                                         .format(loss, loss_dic['l2'], loss_dic['percep'], loss_dic['p-norm']))
 
-                # if self.opts.save_intermediate and step % self.opts.save_interval== 0:
-                #     self.save_W_intermediate_results(ref_name, gen_im, latent_in, step)
+                if self.opts.save_intermediate and step % self.opts.save_interval== 0:
+                    self.save_W_intermediate_results(ref_name, gen_im, latent_in, step)
 
             self.save_W_results(ref_name, gen_im, latent_in)
 
@@ -168,10 +168,10 @@ class Embedding(nn.Module):
                 loss.backward()
                 optimizer_FS.step()
 
-                # if self.opts.verbose:
-                #     pbar.set_description(
-                #         'Embedding: Loss: {:.3f}, L2 loss: {:.3f}, Perceptual loss: {:.3f}, P-norm loss: {:.3f}, L_F loss: {:.3f}'
-                #         .format(loss, loss_dic['l2'], loss_dic['percep'], loss_dic['p-norm'], loss_dic['l_F']))
+                if self.opts.verbose:
+                    pbar.set_description(
+                        'Embedding: Loss: {:.3f}, L2 loss: {:.3f}, Perceptual loss: {:.3f}, P-norm loss: {:.3f}, L_F loss: {:.3f}'
+                        .format(loss, loss_dic['l2'], loss_dic['percep'], loss_dic['p-norm'], loss_dic['l_F']))
 
             self.save_FS_results(ref_name, gen_im, latent_in, latent_F)
 
