@@ -122,12 +122,12 @@ class Embedding(nn.Module):
                 loss.backward()
                 optimizer_W.step()
 
-                if self.opts.verbose:
-                    pbar.set_description('Embedding: Loss: {:.3f}, L2 loss: {:.3f}, Perceptual loss: {:.3f}, P-norm loss: {:.3f}'
-                                         .format(loss, loss_dic['l2'], loss_dic['percep'], loss_dic['p-norm']))
+                # if self.opts.verbose:
+                #     pbar.set_description('Embedding: Loss: {:.3f}, L2 loss: {:.3f}, Perceptual loss: {:.3f}, P-norm loss: {:.3f}'
+                #                          .format(loss, loss_dic['l2'], loss_dic['percep'], loss_dic['p-norm']))
 
-                if self.opts.save_intermediate and step % self.opts.save_interval== 0:
-                    self.save_W_intermediate_results(ref_name, gen_im, latent_in, step)
+                # if self.opts.save_intermediate and step % self.opts.save_interval== 0:
+                #     self.save_W_intermediate_results(ref_name, gen_im, latent_in, step)
 
             self.save_W_results(ref_name, gen_im, latent_in)
 
@@ -168,10 +168,10 @@ class Embedding(nn.Module):
                 loss.backward()
                 optimizer_FS.step()
 
-                if self.opts.verbose:
-                    pbar.set_description(
-                        'Embedding: Loss: {:.3f}, L2 loss: {:.3f}, Perceptual loss: {:.3f}, P-norm loss: {:.3f}, L_F loss: {:.3f}'
-                        .format(loss, loss_dic['l2'], loss_dic['percep'], loss_dic['p-norm'], loss_dic['l_F']))
+                # if self.opts.verbose:
+                #     pbar.set_description(
+                #         'Embedding: Loss: {:.3f}, L2 loss: {:.3f}, Perceptual loss: {:.3f}, P-norm loss: {:.3f}, L_F loss: {:.3f}'
+                #         .format(loss, loss_dic['l2'], loss_dic['percep'], loss_dic['p-norm'], loss_dic['l_F']))
 
             self.save_FS_results(ref_name, gen_im, latent_in, latent_F)
 
@@ -194,16 +194,16 @@ class Embedding(nn.Module):
 
 
     def save_W_results(self, ref_name, gen_im, latent_in):
-        save_im = toPIL(((gen_im[0] + 1) / 2).detach().cpu().clamp(0, 1))
+        # save_im = toPIL(((gen_im[0] + 1) / 2).detach().cpu().clamp(0, 1))
         save_latent = latent_in.detach().cpu().numpy()
 
         output_dir = os.path.join(self.opts.output_dir, 'W+')
         os.makedirs(output_dir, exist_ok=True)
 
         latent_path = os.path.join(output_dir, f'{ref_name[0]}.npy')
-        image_path = os.path.join(output_dir, f'{ref_name[0]}.png')
+        # image_path = os.path.join(output_dir, f'{ref_name[0]}.png')
 
-        save_im.save(image_path)
+        # save_im.save(image_path)
         np.save(latent_path, save_latent)
 
 
@@ -226,15 +226,15 @@ class Embedding(nn.Module):
 
     def save_FS_results(self, ref_name, gen_im, latent_in, latent_F):
 
-        save_im = toPIL(((gen_im[0] + 1) / 2).detach().cpu().clamp(0, 1))
+        # save_im = toPIL(((gen_im[0] + 1) / 2).detach().cpu().clamp(0, 1))
 
         output_dir = os.path.join(self.opts.output_dir, 'FS')
         os.makedirs(output_dir, exist_ok=True)
 
         latent_path = os.path.join(output_dir, f'{ref_name[0]}.npz')
-        image_path = os.path.join(output_dir, f'{ref_name[0]}.png')
+        # image_path = os.path.join(output_dir, f'{ref_name[0]}.png')
 
-        save_im.save(image_path)
+        # save_im.save(image_path)
         np.savez(latent_path, latent_in=latent_in.detach().cpu().numpy(),
                  latent_F=latent_F.detach().cpu().numpy())
 

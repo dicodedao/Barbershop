@@ -167,8 +167,8 @@ class Alignment(nn.Module):
         target_mask = torch.where((OB_region.to(device).unsqueeze(0)) * (gen_seg_target != 0), gen_seg_target, previouse_target_mask)
 
         #####################  Save Visualization of Target Segmentation Mask
-        if save_intermediate:
-            save_vis_mask(img_path1, img_path2, sign, self.opts.output_dir, target_mask.squeeze().cpu())
+        # if save_intermediate:
+        #     save_vis_mask(img_path1, img_path2, sign, self.opts.output_dir, target_mask.squeeze().cpu())
 
         hair_mask_target = torch.where(target_mask == 10, torch.ones_like(target_mask), torch.zeros_like(target_mask))
         hair_mask_target = F.interpolate(hair_mask_target.float().unsqueeze(0), size=(512, 512), mode='nearest')
@@ -359,13 +359,13 @@ class Alignment(nn.Module):
 
     def save_align_results(self, im_name_1, im_name_2, sign, gen_im, latent_in, latent_F, save_intermediate=True):
 
-        save_im = toPIL(((gen_im[0] + 1) / 2).detach().cpu().clamp(0, 1))
+        # save_im = toPIL(((gen_im[0] + 1) / 2).detach().cpu().clamp(0, 1))
 
         save_dir = os.path.join(self.opts.output_dir, 'Align_{}'.format(sign))
         os.makedirs(save_dir, exist_ok=True)
 
         latent_path = os.path.join(save_dir, '{}_{}.npz'.format(im_name_1, im_name_2))
-        if save_intermediate:
-            image_path = os.path.join(save_dir, '{}_{}.png'.format(im_name_1, im_name_2))
-            save_im.save(image_path)
+        # if save_intermediate:
+        #     image_path = os.path.join(save_dir, '{}_{}.png'.format(im_name_1, im_name_2))
+        #     save_im.save(image_path)
         np.savez(latent_path, latent_in=latent_in.detach().cpu().numpy(), latent_F=latent_F.detach().cpu().numpy())

@@ -29,7 +29,7 @@ class FileUploadView(APIView):
         storage.delete(uploaded_file)
         if not os.path.exists(os.path.join(settings.MEDIA_ROOT, aligned_file)):
             return Response({'status': 'Can not find a face in the input image'}, status=status.HTTP_406_NOT_ACCEPTABLE)
-        tranfer_cmd = ['python', f'{settings.BASE_DIR}/Barbershop/main.py', '--im_path1', aligned_file, '--im_path2', f'{target}.png', '--im_path3', f'{target}.png', '--learning_rate', '0.02', '--W_steps', '100', '--FS_steps', '100', '--align_steps1', '70', '--align_steps2', '50', '--blend_steps', '100', '--input_dir', settings.MEDIA_ROOT, '--output_dir', settings.MEDIA_ROOT, '--ckpt', f'{settings.BASE_DIR}/Barbershop/pretrained_models/ffhq.pt', '--seg_ckpt', f'{settings.BASE_DIR}/Barbershop/pretrained_models/seg.pth']
+        tranfer_cmd = ['python', f'{settings.BASE_DIR}/Barbershop/main.py', '--im_path1', aligned_file, '--im_path2', f'{target}.png', '--im_path3', f'{target}.png', '--learning_rate', '0.03', '--W_steps', '100', '--FS_steps', '100', '--align_steps1', '70', '--align_steps2', '50', '--blend_steps', '50', '--input_dir', settings.MEDIA_ROOT, '--output_dir', settings.MEDIA_ROOT, '--ckpt', f'{settings.BASE_DIR}/Barbershop/pretrained_models/ffhq.pt', '--seg_ckpt', f'{settings.BASE_DIR}/Barbershop/pretrained_models/seg.pth',]
         subprocess.run(tranfer_cmd)
         result_file = f'{aligned_file.split(".")[0]}_{target}_{target}_realistic.png'
         if os.path.exists(os.path.join(settings.MEDIA_ROOT, result_file)):
