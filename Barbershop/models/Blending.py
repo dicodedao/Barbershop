@@ -16,6 +16,7 @@ from utils.data_utils import load_FS_latent
 from utils.data_utils import cuda_unsqueeze
 from utils.image_utils import load_image, dilate_erosion_mask_path, dilate_erosion_mask_tensor
 from utils.model_utils import download_weight
+import shutil
 
 toPIL = torchvision.transforms.ToPILImage()
 
@@ -70,7 +71,7 @@ class Blending(nn.Module):
     def blend_images(self, img_path1, img_path2, img_path3, sign='realistic'):
 
         device = self.opts.device
-        output_dir = self.opts.output_dir
+        input_dir = self.opts.input_dir
 
         im_name_1 = os.path.splitext(os.path.basename(img_path1))[0]
         im_name_2 = os.path.splitext(os.path.basename(img_path2))[0]
@@ -83,10 +84,8 @@ class Blending(nn.Module):
         HM_3D, HM_3E = cuda_unsqueeze(dilate_erosion_mask_path(img_path3, self.seg), device)
 
         opt_blend, interpolation_latent = self.setup_blend_optimizer()
-        latent_1, latent_F_mixed = load_FS_latent(os.path.join(output_dir, 'Align_{}'.format(sign),
-                                            '{}_{}.npz'.format(im_name_1, im_name_3)),device)
-        latent_3, _ = load_FS_latent(os.path.join(output_dir, 'FS',
-                                            '{}.npz'.format(im_name_3)), device)
+        latent_1, latent_F_mixed = load_FS_latent(os.path.join(input_dir, 'align_{}_{}.npz'.format(im_name_1, im_name_3)),device)
+        latent_3, _ = load_FS_latent(os.path.splitext(img_path3)[0] + '_fs.npz' , device)
 
         with torch.no_grad():
             I_X, _ = self.net.generator([latent_1], input_is_latent=True, return_latents=False, start_layer=4,
@@ -121,23 +120,22 @@ class Blending(nn.Module):
             }
             loss, loss_dic = self.loss_builder(**im_dict)
 
-            # if self.opts.verbose:
-            #     pbar.set_description(
-            #         'Blend Loss: {:.3f}, face: {:.3f}, hair: {:.3f}'
-            #             .format(loss, loss_dic['face'], loss_dic['hair']))
+            if self.opts.verbose:
+                pbar.set_description(
+                    'Blend Loss: {:.3f}, face: {:.3f}, hair: {:.3f}'
+                        .format(loss, loss_dic['face'], loss_dic['hair']))
 
             loss.backward()
             opt_blend.step()
 
         ############## Load F code from  '{}_{}.npz'.format(im_name_1, im_name_2)
-        _, latent_F_mixed = load_FS_latent(os.path.join(output_dir, 'Align_{}'.format(sign),
-                                                        '{}_{}.npz'.format(im_name_1, im_name_2)), device)
+        _, latent_F_mixed = load_FS_latent(os.path.join(input_dir, 'align_{}_{}.npz'.format(im_name_1, im_name_2)), device)
         I_G, _ = self.net.generator([latent_mixed], input_is_latent=True, return_latents=False, start_layer=4,
                            end_layer=8, layer_in=latent_F_mixed)
 
-        self.save_blend_results(im_name_1, im_name_2, im_name_3, sign, I_G, latent_mixed, latent_F_mixed)
+        self.save_blend_results(im_name_1, I_G,)
 
-    def save_blend_results(self, im_name_1, im_name_2, im_name_3, sign,  gen_im, latent_in, latent_F):
+    def save_blend_results(self, im_name_1, gen_im,):
         save_im = toPIL(((gen_im[0] + 1) / 2).detach().cpu().clamp(0, 1))
 
         # save_dir = os.path.join(self.opts.output_dir, 'Blend_{}'.format(sign))

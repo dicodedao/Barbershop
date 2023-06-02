@@ -93,15 +93,23 @@ class Embedding(nn.Module):
     def setup_embedding_loss_builder(self):
         self.loss_builder = EmbeddingLossBuilder(self.opts)
 
-
+    def check_W_existed(self, file_name, path_dict):
+        dir = path_dict[file_name]
+        w_file_name = f'{file_name}_w.npy'
+        return os.path.exists(os.path.join(dir, w_file_name))
+    
     def invert_images_in_W(self, image_path=None):
         self.setup_dataloader(image_path=image_path)
         device = self.opts.device
         ibar = tqdm(self.dataloader, desc='Images')
-        output_dir = self.opts.output_dir
+        
+        path_dict = {}
+        for p in image_path:
+            file_name = os.path.splitext(os.path.basename(p))[0]
+            path_dict[file_name]=os.path.dirname(p)
+        
         for ref_im_H, ref_im_L, ref_name in ibar:
-            latent_W_path = os.path.join(output_dir, 'W+', f'{ref_name[0]}.npy')
-            if os.path.exists(latent_W_path):
+            if self.check_W_existed(ref_name[0], path_dict):
                 continue
             
             optimizer_W, latent = self.setup_W_optimizer()
@@ -122,29 +130,33 @@ class Embedding(nn.Module):
                 loss.backward()
                 optimizer_W.step()
 
-                # if self.opts.verbose:
-                #     pbar.set_description('Embedding: Loss: {:.3f}, L2 loss: {:.3f}, Perceptual loss: {:.3f}, P-norm loss: {:.3f}'
-                #                          .format(loss, loss_dic['l2'], loss_dic['percep'], loss_dic['p-norm']))
-
-                # if self.opts.save_intermediate and step % self.opts.save_interval== 0:
-                #     self.save_W_intermediate_results(ref_name, gen_im, latent_in, step)
-
-            self.save_W_results(ref_name, gen_im, latent_in)
+                if self.opts.verbose:
+                    pbar.set_description('Embedding: Loss: {:.3f}, L2 loss: {:.3f}, Perceptual loss: {:.3f}, P-norm loss: {:.3f}'
+                                         .format(loss, loss_dic['l2'], loss_dic['percep'], loss_dic['p-norm']))
+            self.save_W_results(ref_name, gen_im, latent_in, path_dict)
 
 
-
+    def check_FS_existed(self, file_name, path_dict):
+        dir = path_dict[file_name]
+        fs_file_name = f'{file_name}_fs.npz'
+        return os.path.exists(os.path.join(dir, fs_file_name))
 
     def invert_images_in_FS(self, image_path=None):
         self.setup_dataloader(image_path=image_path)
-        output_dir = self.opts.output_dir
         device = self.opts.device
         ibar = tqdm(self.dataloader, desc='Images')
-        output_dir = self.opts.output_dir
+
+        path_dict = {}
+        for p in image_path:
+            file_name = os.path.splitext(os.path.basename(p))[0]
+            path_dict[file_name]=os.path.dirname(p)
+
         for ref_im_H, ref_im_L, ref_name in ibar:
-            latent_FS_path = os.path.join(output_dir, 'FS', f'{ref_name[0]}.npz')
-            if os.path.exists(latent_FS_path):
+            img_name = ref_name[0]
+            if self.check_FS_existed(img_name, path_dict):
                 continue
-            latent_W_path = os.path.join(output_dir, 'W+', f'{ref_name[0]}.npy')
+            
+            latent_W_path = os.path.join(path_dict[img_name], f'{img_name}_w.npy')
             latent_W = torch.from_numpy(convert_npy_code(np.load(latent_W_path))).to(device)
             F_init, _ = self.net.generator([latent_W], input_is_latent=True, return_latents=False, start_layer=0, end_layer=3)
             optimizer_FS, latent_F, latent_S = self.setup_FS_optimizer(latent_W, F_init)
@@ -168,12 +180,12 @@ class Embedding(nn.Module):
                 loss.backward()
                 optimizer_FS.step()
 
-                # if self.opts.verbose:
-                #     pbar.set_description(
-                #         'Embedding: Loss: {:.3f}, L2 loss: {:.3f}, Perceptual loss: {:.3f}, P-norm loss: {:.3f}, L_F loss: {:.3f}'
-                #         .format(loss, loss_dic['l2'], loss_dic['percep'], loss_dic['p-norm'], loss_dic['l_F']))
+                if self.opts.verbose:
+                    pbar.set_description(
+                        'Embedding: Loss: {:.3f}, L2 loss: {:.3f}, Perceptual loss: {:.3f}, P-norm loss: {:.3f}, L_F loss: {:.3f}'
+                        .format(loss, loss_dic['l2'], loss_dic['percep'], loss_dic['p-norm'], loss_dic['l_F']))
 
-            self.save_FS_results(ref_name, gen_im, latent_in, latent_F)
+            self.save_FS_results(ref_name, gen_im, latent_in, latent_F, path_dict)
 
 
 
@@ -193,48 +205,22 @@ class Embedding(nn.Module):
 
 
 
-    def save_W_results(self, ref_name, gen_im, latent_in):
-        # save_im = toPIL(((gen_im[0] + 1) / 2).detach().cpu().clamp(0, 1))
+    def save_W_results(self, ref_name, gen_im, latent_in, path_dict):
         save_latent = latent_in.detach().cpu().numpy()
 
-        output_dir = os.path.join(self.opts.output_dir, 'W+')
-        os.makedirs(output_dir, exist_ok=True)
+        w_file_prefix = ref_name[0]
+        latent_path = os.path.join(path_dict[w_file_prefix], f'{w_file_prefix}_w.npy')
 
-        latent_path = os.path.join(output_dir, f'{ref_name[0]}.npy')
-        # image_path = os.path.join(output_dir, f'{ref_name[0]}.png')
-
-        # save_im.save(image_path)
         np.save(latent_path, save_latent)
 
 
 
-    def save_W_intermediate_results(self, ref_name, gen_im, latent_in, step):
+    def save_FS_results(self, ref_name, gen_im, latent_in, latent_F, path_dict):
 
-        save_im = toPIL(((gen_im[0] + 1) / 2).detach().cpu().clamp(0, 1))
-        save_latent = latent_in.detach().cpu().numpy()
+        fs_file_prefix = ref_name[0]
 
+        latent_path = os.path.join(path_dict[fs_file_prefix], f'{fs_file_prefix}_fs.npz')
 
-        intermediate_folder = os.path.join(self.opts.output_dir, 'W+', ref_name[0])
-        os.makedirs(intermediate_folder, exist_ok=True)
-
-        latent_path = os.path.join(intermediate_folder, f'{ref_name[0]}_{step:04}.npy')
-        image_path = os.path.join(intermediate_folder, f'{ref_name[0]}_{step:04}.png')
-
-        save_im.save(image_path)
-        np.save(latent_path, save_latent)
-
-
-    def save_FS_results(self, ref_name, gen_im, latent_in, latent_F):
-
-        # save_im = toPIL(((gen_im[0] + 1) / 2).detach().cpu().clamp(0, 1))
-
-        output_dir = os.path.join(self.opts.output_dir, 'FS')
-        os.makedirs(output_dir, exist_ok=True)
-
-        latent_path = os.path.join(output_dir, f'{ref_name[0]}.npz')
-        # image_path = os.path.join(output_dir, f'{ref_name[0]}.png')
-
-        # save_im.save(image_path)
         np.savez(latent_path, latent_in=latent_in.detach().cpu().numpy(),
                  latent_F=latent_F.detach().cpu().numpy())
 

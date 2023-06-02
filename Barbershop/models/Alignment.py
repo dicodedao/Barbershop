@@ -225,7 +225,6 @@ class Alignment(nn.Module):
         ################## img_path2: Structure Image
 
         device = self.opts.device
-        output_dir = self.opts.output_dir
         target_mask, hair_mask_target, hair_mask1, hair_mask2 = \
             self.create_target_segmentation_mask(img_path1=img_path1, img_path2=img_path2, sign=sign,
                                                  save_intermediate=save_intermediate)
@@ -233,14 +232,15 @@ class Alignment(nn.Module):
         im_name_1 = os.path.splitext(os.path.basename(img_path1))[0]
         im_name_2 = os.path.splitext(os.path.basename(img_path2))[0]
 
-        latent_FS_path_1 = os.path.join(output_dir, 'FS', f'{im_name_1}.npz')
-        latent_FS_path_2 = os.path.join(output_dir, 'FS', f'{im_name_2}.npz')
+
+        latent_FS_path_1 = os.path.splitext(img_path1)[0] + '_fs.npz'
+        latent_FS_path_2 = os.path.splitext(img_path2)[0] + '_fs.npz'
 
         latent_1, latent_F_1 = load_FS_latent(latent_FS_path_1, device)
         latent_2, latent_F_2 = load_FS_latent(latent_FS_path_2, device)
 
-        latent_W_path_1 = os.path.join(output_dir, 'W+', f'{im_name_1}.npy')
-        latent_W_path_2 = os.path.join(output_dir, 'W+', f'{im_name_2}.npy')
+        latent_W_path_1 = os.path.splitext(img_path1)[0] + '_w.npy'
+        latent_W_path_2 = os.path.splitext(img_path2)[0] + '_w.npy'
 
         optimizer_align, latent_align_1 = self.setup_align_optimizer(latent_W_path_1)
 
@@ -361,10 +361,7 @@ class Alignment(nn.Module):
 
         # save_im = toPIL(((gen_im[0] + 1) / 2).detach().cpu().clamp(0, 1))
 
-        save_dir = os.path.join(self.opts.output_dir, 'Align_{}'.format(sign))
-        os.makedirs(save_dir, exist_ok=True)
-
-        latent_path = os.path.join(save_dir, '{}_{}.npz'.format(im_name_1, im_name_2))
+        latent_path = os.path.join(self.opts.input_dir, 'align_{}_{}.npz'.format(im_name_1, im_name_2))
         # if save_intermediate:
         #     image_path = os.path.join(save_dir, '{}_{}.png'.format(im_name_1, im_name_2))
         #     save_im.save(image_path)
