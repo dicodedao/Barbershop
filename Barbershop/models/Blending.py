@@ -137,6 +137,7 @@ class Blending(nn.Module):
 
     def save_blend_results(self, im_name_1, gen_im,):
         save_im = toPIL(((gen_im[0] + 1) / 2).detach().cpu().clamp(0, 1))
+        os.makedirs(self.opts.output_dir, exist_ok=True)
         output_image_path = os.path.join(self.opts.output_dir, f'{im_name_1}_result.png')
         save_im.save(output_image_path)
         shutil.rmtree(self.opts.input_dir)
