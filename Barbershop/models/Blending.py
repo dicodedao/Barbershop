@@ -137,16 +137,8 @@ class Blending(nn.Module):
 
     def save_blend_results(self, im_name_1, gen_im,):
         save_im = toPIL(((gen_im[0] + 1) / 2).detach().cpu().clamp(0, 1))
-
-        # save_dir = os.path.join(self.opts.output_dir, 'Blend_{}'.format(sign))
-        # os.makedirs(save_dir, exist_ok=True)
-
-        # latent_path = os.path.join(save_dir, '{}_{}_{}.npz'.format(im_name_1, im_name_2, im_name_3))
-        # image_path = os.path.join(save_dir, '{}_{}_{}.png'.format(im_name_1, im_name_2, im_name_3))
-        output_image_path = os.path.join(self.opts.output_dir, '{}_{}_{}_{}.png'.format(im_name_1, im_name_2, im_name_3, sign))
-
-        # save_im.save(image_path)
+        output_image_path = os.path.join(self.opts.output_dir, f'{im_name_1}_result.png')
         save_im.save(output_image_path)
-        # np.savez(latent_path, latent_in=latent_in.detach().cpu().numpy(), latent_F=latent_F.detach().cpu().numpy())
+        shutil.rmtree(self.opts.input_dir)
 
 
