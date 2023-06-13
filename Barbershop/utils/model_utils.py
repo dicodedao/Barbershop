@@ -14,7 +14,7 @@ weight_dic = {
 
 def download_weight(weight_path):
     if not os.path.exists(weight_path):
-        os.mkdir(weight_path)
+        os.mkdir(os.path.dirname(weight_path))
     gdown.download(
         weight_dic[os.path.basename(weight_path)], output=weight_path, fuzzy=True
     )
