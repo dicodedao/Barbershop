@@ -20,8 +20,8 @@ class FileUploadView(APIView):
         print(f"[{datetime.now().strftime('%H:%M:%S')}] ------ Received request")
 
         file_obj = request.FILES.get('file')
-        target = request.POST.get('target') #from 1 -> 10
-        auto_crop = request.POST.get('auto_crop')
+        target = request.POST.get('target') #from 1 -> 8
+        auto_crop = request.POST.get('auto_crop').lower() in ('yes', 'true', 't', '1')
         print(f'AUTO_CROP: {auto_crop}')
         
         storage = FileSystemStorage()
