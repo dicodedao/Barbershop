@@ -117,6 +117,9 @@ class FileUploadView2(APIView):
         im_path1 = os.path.join(input_dir, aligned_file)
         im_path2 = os.path.join(template_dir, f"{target}.png")
         im_path3 = im_path2
+        model_tuple.im_path1 = im_path1
+        model_tuple.im_path2 = im_path2
+        model_tuple.im_path3 = im_path3
 
         im_set = {im_path1, im_path2, im_path3}
         settings.MODEL.invert_images_in_W([*im_set])
