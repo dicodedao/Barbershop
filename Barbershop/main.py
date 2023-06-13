@@ -14,7 +14,7 @@ from models.Embedding import Embedding
 from models.Alignment import Alignment
 from models.Blending import Blending
 
-import datetime
+from datetime import datetime
 
 def main(args):
     ii2s = Embedding(args)

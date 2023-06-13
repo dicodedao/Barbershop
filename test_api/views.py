@@ -11,7 +11,7 @@ import barbershop_api.settings as settings
 import uuid
 import subprocess
 import os
-import datetime
+from datetime import datetime
 
 class FileUploadView(APIView):
     parser_classes = (MultiPartParser, FormParser)
