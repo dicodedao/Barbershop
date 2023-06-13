@@ -14,7 +14,7 @@ from models.Embedding import Embedding
 from models.Alignment import Alignment
 from models.Blending import Blending
 
-import time
+import logging
 
 def main(args):
     ii2s = Embedding(args)
@@ -37,18 +37,18 @@ def main(args):
     im_path2 = os.path.join(args.template_dir, args.im_path2)
     im_path3 = os.path.join(args.template_dir, args.im_path3)
 
-    print(f"[{time.time()}] ------ Step 1: Invert images")
+    logging.debug('------ Step 1: Invert images')
     im_set = {im_path1, im_path2, im_path3}
     ii2s.invert_images_in_W([*im_set])
     ii2s.invert_images_in_FS([*im_set])
 
-    print(f"[{time.time()}] ------ Step 2: Create mask and align images")
+    logging.debug('------ Step 2: Create mask and align images')
     align = Alignment(args)
     align.align_images(im_path1, im_path2, sign=args.sign, align_more_region=False, smooth=args.smooth)
     if im_path2 != im_path3:
         align.align_images(im_path1, im_path3, sign=args.sign, align_more_region=False, smooth=args.smooth, save_intermediate=False)
 
-    print(f"[{time.time()}] ------ Step 3: Blend images")
+    logging.debug('------ Step 3: Blend images')
     blend = Blending(args)
     blend.blend_images(im_path1, im_path2, im_path3, sign=args.sign)    
 
