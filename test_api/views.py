@@ -22,6 +22,7 @@ class FileUploadView(APIView):
         file_obj = request.FILES.get('file')
         target = request.POST.get('target') #from 1 -> 10
         auto_crop = request.POST.get('auto_crop')
+        print(f'AUTO_CROP: {auto_crop}')
         
         storage = FileSystemStorage()
         file_ext = file_obj.name.split('.')[-1]
