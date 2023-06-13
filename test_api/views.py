@@ -7,6 +7,7 @@ from django.core.files.storage import FileSystemStorage
 from django.core.files import File
 from django.http import FileResponse
 from django.conf import settings
+from collections import namedtuple
 
 import barbershop_api.settings as settings
 import uuid
@@ -21,6 +22,46 @@ class FileUploadView2(APIView):
     parser_classes = (MultiPartParser, FormParser)
 
     def post(self, request, *args, **kwargs):
+        model_args = {
+            "input_dir": f"{settings.MEDIA_ROOT}/user_input",
+            "output_dir": f"{settings.MEDIA_ROOT}/user_output",
+            "im_path1": "16.png",
+            "im_path2": "15.png",
+            "im_path3": "117.png",
+            "template_dir": f"{settings.MEDIA_ROOT}/template",
+            "sign": "realistic",
+            "smooth": 5,
+            "size": 1024,
+            "ckpt": f"{settings.BASE_DIR}/Barbershop/pretrained_models/ffhq.pt",
+            "channel_multiplier": 2,
+            "latent": 512,
+            "n_mlp": 8,
+            "device": "cuda",
+            "seed": None,
+            "tile_latent": False,
+            "opt_name": "adam",
+            "learning_rate": 0.01,
+            "lr_schedule": "fixed",
+            "save_intermediate": False,
+            "save_interval": 300,
+            "verbose": False,
+            "seg_ckpt": f"{settings.BASE_DIR}/Barbershop/pretrained_models/seg.pth",
+            "percept_lambda": 1.0,
+            "l2_lambda": 1.0,
+            "p_norm_lambda": 0.001,
+            "l_F_lambda": 0.1,
+            "W_steps": 20,
+            "FS_steps": 20,
+            "ce_lambda": 1.0,
+            "style_lambda": 40000.0,
+            "align_steps1": 20,
+            "align_steps2": 20,
+            "face_lambda": 1.0,
+            "hair_lambda": 1.0,
+            "blend_steps": 20,
+        }
+        ArgsTuple = namedtuple("ArgsTuple", model_args)
+        model_tuple = ArgsTuple(**model_args)
         print(f"[{datetime.now().strftime('%H:%M:%S')}] ------ Received request")
 
         file_obj = request.FILES.get("file")
@@ -81,18 +122,18 @@ class FileUploadView2(APIView):
         settings.MODEL.invert_images_in_W([*im_set])
         settings.MODEL.invert_images_in_FS([*im_set])
 
-        align = Alignment(args)
+        align = Alignment(model_tuple)
         align.align_images(
             im_path1,
             im_path2,
-            sign=args.sign,
+            sign=model_tuple.sign,
             align_more_region=False,
-            smooth=args.smooth,
+            smooth=model_tuple.smooth,
         )
 
         print(f"[{datetime.now().strftime('%H:%M:%S')}] ------ Step 3: Blend images")
-        blend = Blending(args)
-        blend.blend_images(im_path1, im_path2, im_path3, sign="realistic")
+        blend = Blending(model_tuple)
+        blend.blend_images(im_path1, im_path2, im_path3, sign=model_tuple.sign)
 
         print(
             f"[{datetime.now().strftime('%H:%M:%S')}] ------ Finish transfer hair style"
