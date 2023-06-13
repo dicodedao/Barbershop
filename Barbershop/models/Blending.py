@@ -9,7 +9,7 @@ import PIL
 import torchvision
 from Barbershop.models.face_parsing.model import BiSeNet, seg_mean, seg_std
 from Barbershop.models.optimizer.ClampOptimizer import ClampOptimizer
-from losses.blend_loss import BlendLossBuilder
+from Barbershop.losses.blend_loss import BlendLossBuilder
 import torch.nn.functional as F
 import cv2
 from Barbershop.utils.data_utils import load_FS_latent

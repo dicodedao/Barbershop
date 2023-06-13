@@ -11,7 +11,7 @@ import torchvision
 from PIL import Image
 from Barbershop.utils.data_utils import convert_npy_code
 from Barbershop.models.face_parsing.model import BiSeNet, seg_mean, seg_std
-from losses.align_loss import AlignLossBuilder
+from Barbershop.losses.align_loss import AlignLossBuilder
 import torch.nn.functional as F
 import cv2
 from Barbershop.utils.data_utils import load_FS_latent
