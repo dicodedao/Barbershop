@@ -4,14 +4,14 @@ from Barbershop.models.Net import Net
 import numpy as np
 import os
 from functools import partial
-from utils.bicubic import BicubicDownSample
+from Barbershop.utils.bicubic import BicubicDownSample
 from datasets.image_dataset import ImagesDataset
 from losses.embedding_loss import EmbeddingLossBuilder
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 import PIL
 import torchvision
-from utils.data_utils import convert_npy_code
+from Barbershop.utils.data_utils import convert_npy_code
 
 toPIL = torchvision.transforms.ToPILImage()
 
