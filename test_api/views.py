@@ -60,8 +60,6 @@ class FileUploadView2(APIView):
             "hair_lambda": 1.0,
             "blend_steps": 20,
         }
-        ArgsTuple = namedtuple("ArgsTuple", model_args)
-        model_tuple = ArgsTuple(**model_args)
         print(f"[{datetime.now().strftime('%H:%M:%S')}] ------ Received request")
 
         file_obj = request.FILES.get("file")
@@ -117,9 +115,12 @@ class FileUploadView2(APIView):
         im_path1 = os.path.join(input_dir, aligned_file)
         im_path2 = os.path.join(template_dir, f"{target}.png")
         im_path3 = im_path2
-        model_tuple.im_path1 = im_path1
-        model_tuple.im_path2 = im_path2
-        model_tuple.im_path3 = im_path3
+
+        model_args["im_path1"] = im_path1
+        model_args["im_path2"] = im_path2
+        model_args["im_path3"] = im_path3
+        ArgsTuple = namedtuple("ArgsTuple", model_args)
+        model_tuple = ArgsTuple(**model_args)
 
         im_set = {im_path1, im_path2, im_path3}
         settings.MODEL.invert_images_in_W([*im_set])
