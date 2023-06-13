@@ -7,6 +7,7 @@ import numpy as np
 import sys
 import os
 import dlib
+from django.conf import settings
 
 
 from PIL import Image
@@ -21,16 +22,16 @@ from datetime import datetime
 
 def preload_model():
     default_args = {
-        "input_dir": "input/face",
-        "output_dir": "output",
+        "input_dir": f"{settings.MEDIA_ROOT}/user_input",
+        "output_dir": f"{settings.MEDIA_ROOT}/user_output",
         "im_path1": "16.png",
         "im_path2": "15.png",
         "im_path3": "117.png",
-        "template_dir": "template",
+        "template_dir": f"{settings.MEDIA_ROOT}/template",
         "sign": "realistic",
         "smooth": 5,
         "size": 1024,
-        "ckpt": "pretrained_models/ffhq.pt",
+        "ckpt": f"{settings.BASE_DIR}/Barbershop/pretrained_models/ffhq.pt",
         "channel_multiplier": 2,
         "latent": 512,
         "n_mlp": 8,
@@ -43,7 +44,7 @@ def preload_model():
         "save_intermediate": False,
         "save_interval": 300,
         "verbose": False,
-        "seg_ckpt": "pretrained_models/seg.pth",
+        "seg_ckpt": f"{settings.BASE_DIR}/Barbershop/pretrained_models/seg.pth",
         "percept_lambda": 1.0,
         "l2_lambda": 1.0,
         "p_norm_lambda": 0.001,

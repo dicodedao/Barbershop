@@ -6,12 +6,15 @@ from rest_framework import status
 from django.core.files.storage import FileSystemStorage
 from django.core.files import File
 from django.http import FileResponse
+from django.conf import settings
 
 import barbershop_api.settings as settings
 import uuid
 import subprocess
 import os
 from datetime import datetime
+from Barbershop.models.Alignment import Alignment
+from Barbershop.models.Blending import Blending
 
 
 class FileUploadView2(APIView):
@@ -68,39 +71,29 @@ class FileUploadView2(APIView):
         print(
             f"[{datetime.now().strftime('%H:%M:%S')}] ------ Begin transfer hair style"
         )
-        tranfer_cmd = [
-            "python",
-            f"{settings.BASE_DIR}/Barbershop/main.py",
-            "--im_path1",
-            aligned_file,
-            "--im_path2",
-            f"{target}.png",
-            "--im_path3",
-            f"{target}.png",
-            "--learning_rate",
-            "0.03",
-            "--W_steps",
-            "100",
-            "--FS_steps",
-            "100",
-            "--align_steps1",
-            "70",
-            "--align_steps2",
-            "50",
-            "--blend_steps",
-            "50",
-            "--input_dir",
-            f"{settings.MEDIA_ROOT}/user_input",
-            "--output_dir",
-            f"{settings.MEDIA_ROOT}/user_output",
-            "--template_dir",
-            f"{settings.MEDIA_ROOT}/template",
-            "--ckpt",
-            f"{settings.BASE_DIR}/Barbershop/pretrained_models/ffhq.pt",
-            "--seg_ckpt",
-            f"{settings.BASE_DIR}/Barbershop/pretrained_models/seg.pth",
-        ]
-        subprocess.run(tranfer_cmd)
+        input_dir = f"{settings.MEDIA_ROOT}/user_input"
+        template_dir = f"{settings.MEDIA_ROOT}/template"
+        im_path1 = os.path.join(input_dir, aligned_file)
+        im_path2 = os.path.join(template_dir, f"{target}.png")
+        im_path3 = im_path2
+
+        im_set = {im_path1, im_path2, im_path3}
+        settings.MODEL.invert_images_in_W([*im_set])
+        settings.MODEL.invert_images_in_FS([*im_set])
+
+        align = Alignment(args)
+        align.align_images(
+            im_path1,
+            im_path2,
+            sign=args.sign,
+            align_more_region=False,
+            smooth=args.smooth,
+        )
+
+        print(f"[{datetime.now().strftime('%H:%M:%S')}] ------ Step 3: Blend images")
+        blend = Blending(args)
+        blend.blend_images(im_path1, im_path2, im_path3, sign="realistic")
+
         print(
             f"[{datetime.now().strftime('%H:%M:%S')}] ------ Finish transfer hair style"
         )
