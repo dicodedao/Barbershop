@@ -20,12 +20,10 @@ from Barbershop.models.Tool import Tool
 
 from datetime import datetime
 
-default_args = {
+def preload_model():
+    default_args = {
         "input_dir": f"{settings.MEDIA_ROOT}/user_input",
         "output_dir": f"{settings.MEDIA_ROOT}/user_output",
-        "im_path1": "16.png",
-        "im_path2": "15.png",
-        "im_path3": "117.png",
         "template_dir": f"{settings.MEDIA_ROOT}/template",
         "sign": "realistic",
         "smooth": 5,
@@ -38,7 +36,7 @@ default_args = {
         "seed": None,
         "tile_latent": True,
         "opt_name": "adam",
-        "learning_rate": 0.01,
+        "learning_rate": 0.03,
         "lr_schedule": "fixed",
         "save_intermediate": False,
         "save_interval": 300,
@@ -48,18 +46,16 @@ default_args = {
         "l2_lambda": 1.0,
         "p_norm_lambda": 0.001,
         "l_F_lambda": 0.1,
-        "W_steps": 20,
-        "FS_steps": 20,
+        "W_steps": 100,
+        "FS_steps": 100,
         "ce_lambda": 1.0,
         "style_lambda": 4e4,
-        "align_steps1": 20,
-        "align_steps2": 20,
+        "align_steps1": 70,
+        "align_steps2": 50,
         "face_lambda": 1.0,
         "hair_lambda": 1.0,
         "blend_steps": 20,
     }
-
-def preload_model():
     ArgsTuple = namedtuple("ArgsTuple", default_args)
     args = ArgsTuple(**default_args)
     return Tool(args)
@@ -74,22 +70,22 @@ def transferHair(tool, im_path1, im_path2, im_path3):
     align.align_images(
         im_path1, 
         im_path2, 
-        sign=tool.args.sign, 
+        sign=tool.opts.sign, 
         align_more_region=False, 
-        smooth=tool.args.smooth,
+        smooth=tool.opts.smooth,
     )
     if im_path2 != im_path3:
         align.align_images(
             im_path1,
             im_path3,
-            sign=tool.args.sign,
+            sign=tool.opts.sign,
             align_more_region=False,
-            smooth=tool.args.smooth,
+            smooth=tool.opts.smooth,
             save_intermediate=False,
         )
 
     blend = Blending(tool)
-    blend.blend_images(im_path1, im_path2, im_path3, sign=tool.args.sign)
+    blend.blend_images(im_path1, im_path2, im_path3, sign=tool.opts.sign)
 
 def main(args):
     ii2s = Embedding(args)
