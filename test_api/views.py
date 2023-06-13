@@ -21,6 +21,7 @@ class FileUploadView(APIView):
 
         file_obj = request.FILES.get('file')
         target = request.POST.get('target') #from 1 -> 10
+        auto_crop = request.POST.get('auto_crop')
         
         storage = FileSystemStorage()
         file_ext = file_obj.name.split('.')[-1]
@@ -28,12 +29,14 @@ class FileUploadView(APIView):
         storage.save(os.path.join(settings.MEDIA_ROOT, 'user_input', uploaded_file), file_obj)
         print(f"[{datetime.now().strftime('%H:%M:%S')}] ------ Stored original file")
 
-        print(f"[{datetime.now().strftime('%H:%M:%S')}] ------ Begin detect and align face to center of image")
-        aligned_file = f'{uuid.uuid1().hex}.png'
-        align_cmd = ['python', f'{settings.BASE_DIR}/Barbershop/align_face.py', '--input', f'{settings.MEDIA_ROOT}/user_input/{uploaded_file}', '--output', f'{settings.MEDIA_ROOT}/user_input/{aligned_file}', '--shape_predictor', f'{settings.BASE_DIR}/Barbershop/pretrained_models/shape_predictor_68_face_landmarks.dat']
-        subprocess.run(align_cmd)
-        storage.delete(os.path.join(settings.MEDIA_ROOT, 'user_input', uploaded_file))
-        print(f"[{datetime.now().strftime('%H:%M:%S')}] ------ Finish detect and align face to center of image")
+        aligned_file = uploaded_file
+        if auto_crop:
+            print(f"[{datetime.now().strftime('%H:%M:%S')}] ------ Begin detect and align face to center of image")
+            aligned_file = f'{uuid.uuid1().hex}.png'
+            align_cmd = ['python', f'{settings.BASE_DIR}/Barbershop/align_face.py', '--input', f'{settings.MEDIA_ROOT}/user_input/{uploaded_file}', '--output', f'{settings.MEDIA_ROOT}/user_input/{aligned_file}', '--shape_predictor', f'{settings.BASE_DIR}/Barbershop/pretrained_models/shape_predictor_68_face_landmarks.dat']
+            subprocess.run(align_cmd)
+            storage.delete(os.path.join(settings.MEDIA_ROOT, 'user_input', uploaded_file))
+            print(f"[{datetime.now().strftime('%H:%M:%S')}] ------ Finish detect and align face to center of image")
 
 
         if not os.path.exists(os.path.join(settings.MEDIA_ROOT, 'user_input', aligned_file)):
