@@ -3,7 +3,7 @@ from torch import nn
 from Barbershop.models.stylegan2.model import Generator
 import numpy as np
 import os
-from utils.model_utils import download_weight
+from Barbershop.utils.model_utils import download_weight
 
 
 class Net(nn.Module):
@@ -46,7 +46,7 @@ class Net(nn.Module):
             pulse_space = torch.nn.LeakyReLU(5)(self.generator.style(latent)).numpy()
             self.generator.style.to(self.opts.device)
 
-        from utils.PCA_utils import IPCAEstimator
+        from Barbershop.utils.PCA_utils import IPCAEstimator
 
         transformer = IPCAEstimator(512)
         X_mean = pulse_space.mean(0)
