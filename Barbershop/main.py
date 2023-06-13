@@ -49,15 +49,15 @@ def preload_model():
         "l2_lambda": 1.0,
         "p_norm_lambda": 0.001,
         "l_F_lambda": 0.1,
-        "W_steps": 1100,
-        "FS_steps": 250,
+        "W_steps": 20,
+        "FS_steps": 20,
         "ce_lambda": 1.0,
         "style_lambda": 40000.0,
-        "align_steps1": 140,
-        "align_steps2": 100,
+        "align_steps1": 20,
+        "align_steps2": 20,
         "face_lambda": 1.0,
         "hair_lambda": 1.0,
-        "blend_steps": 400,
+        "blend_steps": 20,
     }
     ArgsTuple = namedtuple("ArgsTuple", default_args)
     args = ArgsTuple(**default_args)
