@@ -12,9 +12,9 @@ import dlib
 from PIL import Image
 
 
-from models.Embedding import Embedding
-from models.Alignment import Alignment
-from models.Blending import Blending
+from Barbershop.models.Embedding import Embedding
+from Barbershop.models.Alignment import Alignment
+from Barbershop.models.Blending import Blending
 
 from datetime import datetime
 
