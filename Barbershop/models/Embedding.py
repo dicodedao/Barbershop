@@ -5,7 +5,7 @@ import numpy as np
 import os
 from functools import partial
 from Barbershop.utils.bicubic import BicubicDownSample
-from datasets.image_dataset import ImagesDataset
+from Barbershop.datasets.image_dataset import ImagesDataset
 from losses.embedding_loss import EmbeddingLossBuilder
 from torch.utils.data import DataLoader
 from tqdm import tqdm
