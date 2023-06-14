@@ -3,6 +3,7 @@ from torch import nn
 from Barbershop.models.Net import Net
 from Barbershop.utils.bicubic import BicubicDownSample
 from Barbershop.models.face_parsing.model import BiSeNet, seg_mean, seg_std
+import dlib
 
 class Tool(nn.Module):
     def __init__(self, opts):
@@ -11,6 +12,7 @@ class Tool(nn.Module):
         self.net = Net(self.opts)
         self.downsample = BicubicDownSample(factor=self.opts.size // 512)
         self.downsample_256 = BicubicDownSample(factor=self.opts.size // 256)
+        self.shape_predictor = dlib.shape_predictor(opts.shape_predictor)
         self.load_segmentation_network()
 
     def load_segmentation_network(self):

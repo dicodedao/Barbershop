@@ -17,7 +17,7 @@ from datetime import datetime
 from Barbershop.models.Alignment import Alignment
 from Barbershop.models.Blending import Blending
 
-from Barbershop.main import transferHair
+from Barbershop.main import *
 
 
 class FileUploadView2(APIView):
@@ -34,38 +34,24 @@ class FileUploadView2(APIView):
         storage = FileSystemStorage()
         file_ext = file_obj.name.split(".")[-1]
         uploaded_file = f"{uuid.uuid1().hex}.{file_ext}"
-        storage.save(
-            os.path.join(settings.MEDIA_ROOT, "user_input", uploaded_file), file_obj
-        )
+        uploaded_file_path = os.path.join(settings.MEDIA_ROOT, "user_input", uploaded_file)
+        storage.save(uploaded_file_path, file_obj)
         print(f"[{datetime.now().strftime('%H:%M:%S')}] ------ Stored original file")
 
-        aligned_file = uploaded_file
         if auto_crop:
             print(
                 f"[{datetime.now().strftime('%H:%M:%S')}] ------ Begin detect and align face to center of image"
             )
-            aligned_file = f"{uuid.uuid1().hex}.png"
-            align_cmd = [
-                "python",
-                f"{settings.BASE_DIR}/Barbershop/align_face.py",
-                "--input",
-                f"{settings.MEDIA_ROOT}/user_input/{uploaded_file}",
-                "--output",
-                f"{settings.MEDIA_ROOT}/user_input/{aligned_file}",
-                "--shape_predictor",
-                f"{settings.BASE_DIR}/Barbershop/pretrained_models/shape_predictor_68_face_landmarks.dat",
-            ]
-            subprocess.run(align_cmd)
-            storage.delete(
-                os.path.join(settings.MEDIA_ROOT, "user_input", uploaded_file)
-            )
+
+            aligned_file_path = crop_image(settings.MODEL, uploaded_file_path)
+            
             print(
                 f"[{datetime.now().strftime('%H:%M:%S')}] ------ Finish detect and align face to center of image"
             )
+        else:
+            aligned_file_path = uploaded_file_path
 
-        if not os.path.exists(
-            os.path.join(settings.MEDIA_ROOT, "user_input", aligned_file)
-        ):
+        if aligned_file_path is None:
             return Response(
                 {"status": "Can not find a face in the input image"},
                 status=status.HTTP_406_NOT_ACCEPTABLE,
@@ -74,12 +60,10 @@ class FileUploadView2(APIView):
         print(
             f"[{datetime.now().strftime('%H:%M:%S')}] ------ Begin transfer hair style"
         )
-        input_dir = f"{settings.MEDIA_ROOT}/user_input"
         template_dir = f"{settings.MEDIA_ROOT}/template"
-        im_path1 = os.path.join(input_dir, aligned_file)
         im_path2 = os.path.join(template_dir, f"{target}.png")
         
-        transferHair(settings.MODEL, im_path1, im_path2, im_path2)
+        transferHair(settings.MODEL, aligned_file_path, im_path2, im_path2)
 
         print(
             f"[{datetime.now().strftime('%H:%M:%S')}] ------ Finish transfer hair style"
@@ -88,7 +72,7 @@ class FileUploadView2(APIView):
         result_path = os.path.join(
             settings.MEDIA_ROOT,
             "user_output",
-            f'{aligned_file.split(".")[0]}_result.png',
+            f'{os.path.basename(aligned_file_path).split(".")[0]}_result.png',
         )
         if os.path.exists(result_path):
             return FileResponse(open(result_path, "rb"))
