@@ -28,10 +28,11 @@ def preload_model():
         "input_dir": f"{settings.MEDIA_ROOT}/user_input",
         "output_dir": f"{settings.MEDIA_ROOT}/user_output",
         "template_dir": f"{settings.MEDIA_ROOT}/template",
+        "blending_enabled": False,
         "sign": "realistic",
         "smooth": 5,
-        "size": 1024,
-        "ckpt": f"{settings.BASE_DIR}/Barbershop/pretrained_models/ffhq.pt",
+        "size": 512,
+        "ckpt": f"{settings.BASE_DIR}/Barbershop/pretrained_models/ffhq_512.pt",
         "channel_multiplier": 2,
         "latent": 512,
         "n_mlp": 8,
@@ -65,6 +66,8 @@ def preload_model():
     return Tool(args)
 
 def transferHair(tool, im_path1, im_path2, im_path3):
+    os.makedirs(tool.opts.output_dir, exist_ok=True)
+
     embedding = Embedding(tool)
     im_set = {im_path1, im_path2, im_path3}
     embedding.invert_images_in_W([*im_set])
@@ -87,14 +90,15 @@ def transferHair(tool, im_path1, im_path2, im_path3):
             smooth=tool.opts.smooth,
             save_intermediate=False,
         )
-
-    blend = Blending(tool)
-    blend.blend_images(im_path1, im_path2, im_path3, sign=tool.opts.sign)
+    if tool.opts.blending_enabled:
+        blend = Blending(tool)
+        blend.blend_images(im_path1, im_path2, im_path3, sign=tool.opts.sign)
 
 def crop_image(tool, im_path):
-    faces = align_face(im_path, tool.shape_predictor)
+    faces = align_face(im_path, tool.shape_predictor, tool.opts.size)
     if len(faces) > 0:
-        new_im_path = os.path.join(tool.opts.input_dir, f"{uuid.uuid1().hex}.png")
-        faces[0].save(new_im_path)
-        return new_im_path
-
+        # new_im_path = f'{os.path.splitext(im_path)[0]}_aligned.png'
+        faces[0].save(im_path)
+        return True
+        # return new_im_path
+    return False

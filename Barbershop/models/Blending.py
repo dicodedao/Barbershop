@@ -20,7 +20,6 @@ from Barbershop.utils.image_utils import (
     dilate_erosion_mask_tensor,
 )
 from Barbershop.utils.model_utils import download_weight
-import shutil
 
 toPIL = torchvision.transforms.ToPILImage()
 
@@ -34,7 +33,7 @@ class Blending(nn.Module):
     def setup_blend_optimizer(self):
 
         interpolation_latent = torch.zeros(
-            (18, 512), requires_grad=True, device=self.tool.opts.device
+            (self.tool.net.layer_num, 512), requires_grad=True, device=self.tool.opts.device
         )
 
         opt_blend = ClampOptimizer(
@@ -154,9 +153,7 @@ class Blending(nn.Module):
         gen_im,
     ):
         save_im = toPIL(((gen_im[0] + 1) / 2).detach().cpu().clamp(0, 1))
-        os.makedirs(self.tool.opts.output_dir, exist_ok=True)
         output_image_path = os.path.join(
             self.tool.opts.output_dir, f"{im_name_1}_result.png"
         )
         save_im.save(output_image_path)
-        shutil.rmtree(self.tool.opts.input_dir)

@@ -476,17 +476,16 @@ class Alignment(nn.Module):
         latent_F,
         save_intermediate=True,
     ):
-
-        # save_im = toPIL(((gen_im[0] + 1) / 2).detach().cpu().clamp(0, 1))
-
-        latent_path = os.path.join(
-            self.tool.opts.input_dir, "align_{}_{}.npz".format(im_name_1, im_name_2)
-        )
-        # if save_intermediate:
-        #     image_path = os.path.join(save_dir, '{}_{}.png'.format(im_name_1, im_name_2))
-        #     save_im.save(image_path)
-        np.savez(
-            latent_path,
-            latent_in=latent_in.detach().cpu().numpy(),
-            latent_F=latent_F.detach().cpu().numpy(),
-        )
+        if self.tool.opts.blending_enabled:
+            latent_path = os.path.join(
+                self.tool.opts.input_dir, "align_{}_{}.npz".format(im_name_1, im_name_2)
+            )            
+            np.savez(
+                latent_path,
+                latent_in=latent_in.detach().cpu().numpy(),
+                latent_F=latent_F.detach().cpu().numpy(),
+            )
+        else:
+            save_im = toPIL(((gen_im[0] + 1) / 2).detach().cpu().clamp(0, 1))
+            image_path = os.path.join(self.tool.opts.output_dir, f'{im_name_1}_result.png')
+            save_im.save(image_path)
