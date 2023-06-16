@@ -132,8 +132,5 @@ dmypy.json
 
 wandb/
 *.lmdb/
-*.pkl
-*.pt
 .idea
 cache
-pretrained_models/seg.pth
