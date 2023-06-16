@@ -90,8 +90,8 @@ class Blending(nn.Module):
             HM_XD, _ = cuda_unsqueeze(dilate_erosion_mask_tensor(HM_X), device)
             target_mask = (1 - HM_1D) * (1 - HM_3D) * (1 - HM_XD)
 
-        pbar = tqdm(range(self.tool.opts.blend_steps), desc="Blend", leave=False)
-        for step in pbar:
+        # pbar = tqdm(range(self.tool.opts.blend_steps), desc="Blend", leave=False)
+        for step in range(self.tool.opts.blend_steps):
 
             opt_blend.zero_grad()
 
@@ -118,12 +118,12 @@ class Blending(nn.Module):
             }
             loss, loss_dic = self.loss_builder(**im_dict)
 
-            if self.tool.opts.verbose:
-                pbar.set_description(
-                    "Blend Loss: {:.3f}, face: {:.3f}, hair: {:.3f}".format(
-                        loss, loss_dic["face"], loss_dic["hair"]
-                    )
-                )
+            # if self.tool.opts.verbose:
+            #     pbar.set_description(
+            #         "Blend Loss: {:.3f}, face: {:.3f}, hair: {:.3f}".format(
+            #             loss, loss_dic["face"], loss_dic["hair"]
+            #         )
+            #     )
 
             loss.backward()
             opt_blend.step()

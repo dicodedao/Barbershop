@@ -111,8 +111,8 @@ class Alignment(nn.Module):
         optimizer_align, latent_align = self.setup_align_optimizer()
         latent_end = latent_align[:, 6:, :].clone().detach()
 
-        pbar = tqdm(range(10), desc="Create Target Mask Step1", leave=False)
-        for step in pbar:
+        # pbar = tqdm(range(10), desc="Create Target Mask Step1", leave=False)
+        for step in range(10):
             optimizer_align.zero_grad()
             latent_in = torch.cat([latent_align[:, :6, :], latent_end], dim=1)
             down_seg, _ = self.create_down_seg(latent_in)
@@ -150,8 +150,8 @@ class Alignment(nn.Module):
         optimizer_align, latent_align = self.setup_align_optimizer()
         latent_end = latent_align[:, 6:, :].clone().detach()
 
-        pbar = tqdm(range(10), desc="Create Target Mask Step2", leave=False)
-        for step in pbar:
+        # pbar = tqdm(range(10), desc="Create Target Mask Step2", leave=False)
+        for step in range(10):
             optimizer_align.zero_grad()
             latent_in = torch.cat([latent_align[:, :6, :], latent_end], dim=1)
             down_seg, _ = self.create_down_seg(latent_in)
@@ -301,8 +301,8 @@ class Alignment(nn.Module):
 
         optimizer_align, latent_align_1 = self.setup_align_optimizer(latent_W_path_1)
 
-        pbar = tqdm(range(self.tool.opts.align_steps1), desc="Align Step 1", leave=False)
-        for step in pbar:
+        # pbar = tqdm(range(self.tool.opts.align_steps1), desc="Align Step 1", leave=False)
+        for step in range(self.tool.opts.align_steps1):
             optimizer_align.zero_grad()
             latent_in = torch.cat([latent_align_1[:, :6, :], latent_1[:, 6:, :]], dim=1)
             down_seg, _ = self.create_down_seg(latent_in)
@@ -352,8 +352,8 @@ class Alignment(nn.Module):
                 HM_Structure.float().unsqueeze(0), size=(256, 256), mode="nearest"
             )
 
-        pbar = tqdm(range(self.tool.opts.align_steps2), desc="Align Step 2", leave=False)
-        for step in pbar:
+        # pbar = tqdm(range(self.tool.opts.align_steps2), desc="Align Step 2", leave=False)
+        for step in range(self.tool.opts.align_steps2):
             optimizer_align.zero_grad()
             latent_in = torch.cat([latent_align_2[:, :6, :], latent_2[:, 6:, :]], dim=1)
             down_seg, gen_im = self.create_down_seg(latent_in)
