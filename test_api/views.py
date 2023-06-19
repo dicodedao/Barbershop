@@ -69,7 +69,7 @@ class FileUploadView(APIView):
         )
 
         #clean up input file
-        for f in glob.glob(os.path.join(settings.TOOL.opts.input_dir, file_name + '*')):
+        for f in glob.glob(os.path.join(settings.TOOL.opts.input_dir, f'*{file_name}*')):
             os.remove(f)
 
         result_path = os.path.join(
@@ -83,3 +83,37 @@ class FileUploadView(APIView):
                 {"status": "Hair transfer failed"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
+        
+
+class CreateTemplateView(APIView):
+    parser_classes = (MultiPartParser, FormParser)
+
+    def post(self, request, *args, **kwargs):
+        file_obj = request.FILES.get("file")
+        file_id = request.POST.get('id')
+        
+        uploaded_file_path = os.path.join(settings.TOOL.opts.template_dir, f'{file_id}.png')
+        if os.path.exists(uploaded_file_path):
+            os.remove(uploaded_file_path)
+
+        w_path = os.path.join(settings.TOOL.opts.template_dir, f'{file_id}_w.npy')
+        if os.path.exists(w_path):
+            os.remove(w_path)
+
+        fs_path = os.path.join(settings.TOOL.opts.template_dir, f'{file_id}_fs.npz')
+        if os.path.exists(fs_path):
+            os.remove(fs_path)
+
+        storage = FileSystemStorage()
+        storage.save(uploaded_file_path, file_obj)
+        
+        
+        if crop_image(settings.TOOL, uploaded_file_path):
+            return Response({"status": "Success"})
+        else:
+            os.remove(uploaded_file_path)
+            return Response(
+                {"status": "Can not find a face in the input image"},
+                status=status.HTTP_406_NOT_ACCEPTABLE,
+            )
+        

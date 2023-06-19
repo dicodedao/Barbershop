@@ -55,7 +55,7 @@ def preload_model():
         "FS_steps": 100,
         "ce_lambda": 1.0,
         "style_lambda": 4e4,
-        "align_steps1": 70,
+        "align_steps1": 50,
         "align_steps2": 50,
         "face_lambda": 1.0,
         "hair_lambda": 1.0,
