@@ -134,3 +134,6 @@ wandb/
 *.lmdb/
 .idea
 cache
+
+media/
+Barbershop/pretrained_models/
