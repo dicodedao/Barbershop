@@ -24,7 +24,7 @@ class FileUploadView(APIView):
     parser_classes = (MultiPartParser, FormParser)
 
     def post(self, request, *args, **kwargs):
-        print(f"[{datetime.now().strftime('%H:%M:%S')}] ------ Received request")
+        # print(f"[{datetime.now().strftime('%H:%M:%S')}] ------ Received request")
 
         file_obj = request.FILES.get("file")
         target = request.POST.get("target")  # from 1 -> 8
@@ -35,18 +35,18 @@ class FileUploadView(APIView):
         file_name = uuid.uuid1().hex
         uploaded_file_path = os.path.join(settings.TOOL.opts.input_dir, f'{file_name}.{file_ext}')
         storage.save(uploaded_file_path, file_obj)
-        print(f"[{datetime.now().strftime('%H:%M:%S')}] ------ Stored original file")
+        # print(f"[{datetime.now().strftime('%H:%M:%S')}] ------ Stored original file")
 
         if auto_crop:
-            print(
-                f"[{datetime.now().strftime('%H:%M:%S')}] ------ Begin detect and align face to center of image"
-            )
+            # print(
+            #     f"[{datetime.now().strftime('%H:%M:%S')}] ------ Begin detect and align face to center of image"
+            # )
 
             valid_face = crop_image(settings.TOOL, uploaded_file_path)
 
-            print(
-                f"[{datetime.now().strftime('%H:%M:%S')}] ------ Finish detect and align face to center of image"
-            )
+            # print(
+            #     f"[{datetime.now().strftime('%H:%M:%S')}] ------ Finish detect and align face to center of image"
+            # )
         else:
             valid_face = True
 
@@ -56,17 +56,17 @@ class FileUploadView(APIView):
                 status=status.HTTP_406_NOT_ACCEPTABLE,
             )
 
-        print(
-            f"[{datetime.now().strftime('%H:%M:%S')}] ------ Begin transfer hair style"
-        )
+        # print(
+        #     f"[{datetime.now().strftime('%H:%M:%S')}] ------ Begin transfer hair style"
+        # )
 
         im_path2 = os.path.join(settings.TOOL.opts.template_dir, f"{target}.png")
         
         transferHair(settings.TOOL, uploaded_file_path, im_path2, im_path2)
 
-        print(
-            f"[{datetime.now().strftime('%H:%M:%S')}] ------ Finish transfer hair style"
-        )
+        # print(
+        #     f"[{datetime.now().strftime('%H:%M:%S')}] ------ Finish transfer hair style"
+        # )
 
         #clean up input file
         for f in glob.glob(os.path.join(settings.TOOL.opts.input_dir, f'*{file_name}*')):
