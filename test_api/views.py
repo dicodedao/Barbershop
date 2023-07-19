@@ -14,18 +14,52 @@ import uuid
 import subprocess
 import os, glob
 from datetime import datetime
+
+import requests
+
 from Barbershop.models.Alignment import Alignment
 from Barbershop.models.Blending import Blending
 
 from Barbershop.main import *
 
+def transferHairStyle(file_name, file_ext, target, auto_crop,):
+    input_file_path = os.path.join(settings.TOOL.opts.input_dir, f'{file_name}.{file_ext}')
+
+    if auto_crop:
+        valid_face = crop_image(settings.TOOL, input_file_path)
+    else:
+        valid_face = True
+
+    if not valid_face:
+        return Response(
+            {"status": "Can not find a face in the input image"},
+            status=status.HTTP_406_NOT_ACCEPTABLE,
+        )
+
+    target_file_path = os.path.join(settings.TOOL.opts.template_dir, f"{target}.png")
+    
+    transferHair(settings.TOOL, input_file_path, target_file_path, target_file_path)
+
+    # clean up input files
+    for f in glob.glob(os.path.join(settings.TOOL.opts.input_dir, f'*{file_name}*')):
+        os.remove(f)
+
+    result_path = os.path.join(
+        settings.TOOL.opts.output_dir,
+        f'{file_name}_result.png',
+    )
+    if os.path.exists(result_path):
+        return FileResponse(open(result_path, "rb"))
+    else:
+        return Response(
+            {"status": "Hair transfer failed"},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        )
 
 class FileUploadView(APIView):
     parser_classes = (MultiPartParser, FormParser)
 
     def post(self, request, *args, **kwargs):
-        # print(f"[{datetime.now().strftime('%H:%M:%S')}] ------ Received request")
-
         file_obj = request.FILES.get("file")
         target = request.POST.get("target")  # from 1 -> 8
         auto_crop = request.POST.get("auto_crop").lower() in ("yes", "true", "t", "1")
@@ -35,54 +69,28 @@ class FileUploadView(APIView):
         file_name = uuid.uuid1().hex
         uploaded_file_path = os.path.join(settings.TOOL.opts.input_dir, f'{file_name}.{file_ext}')
         storage.save(uploaded_file_path, file_obj)
-        # print(f"[{datetime.now().strftime('%H:%M:%S')}] ------ Stored original file")
 
-        if auto_crop:
-            # print(
-            #     f"[{datetime.now().strftime('%H:%M:%S')}] ------ Begin detect and align face to center of image"
-            # )
-
-            valid_face = crop_image(settings.TOOL, uploaded_file_path)
-
-            # print(
-            #     f"[{datetime.now().strftime('%H:%M:%S')}] ------ Finish detect and align face to center of image"
-            # )
-        else:
-            valid_face = True
-
-        if not valid_face:
-            return Response(
-                {"status": "Can not find a face in the input image"},
-                status=status.HTTP_406_NOT_ACCEPTABLE,
-            )
-
-        # print(
-        #     f"[{datetime.now().strftime('%H:%M:%S')}] ------ Begin transfer hair style"
-        # )
-
-        im_path2 = os.path.join(settings.TOOL.opts.template_dir, f"{target}.png")
+        return transferHairStyle(file_name, file_ext, target, auto_crop)
         
-        transferHair(settings.TOOL, uploaded_file_path, im_path2, im_path2)
+class TransferView(APIView):
+    parser_classes = (MultiPartParser, FormParser)
 
-        # print(
-        #     f"[{datetime.now().strftime('%H:%M:%S')}] ------ Finish transfer hair style"
-        # )
+    def post(self, request, *args, **kwargs):
 
-        #clean up input file
-        for f in glob.glob(os.path.join(settings.TOOL.opts.input_dir, f'*{file_name}*')):
-            os.remove(f)
+        file_url = request.POST.get("file_url")
+        target = request.POST.get("target")  # from 1 -> 8
+        auto_crop = request.POST.get("auto_crop").lower() in ("yes", "true", "t", "1")
 
-        result_path = os.path.join(
-            settings.TOOL.opts.output_dir,
-            f'{file_name}_result.png',
-        )
-        if os.path.exists(result_path):
-            return FileResponse(open(result_path, "rb"))
-        else:
-            return Response(
-                {"status": "Hair transfer failed"},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            )
+        file_ext = file_url.split('.')[-1]
+        file_name = uuid.uuid1().hex
+        uploaded_file_path = os.path.join(settings.TOOL.opts.input_dir, f'{file_name}.{file_ext}')
+        
+        #download file
+        file_data = requests.get(file_url).content
+        with open(uploaded_file_path, 'wb') as handler:
+            handler.write(file_data)
+
+        return transferHairStyle(file_name, file_ext, target, auto_crop)
         
 
 class CreateTemplateView(APIView):
